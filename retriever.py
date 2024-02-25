@@ -32,8 +32,8 @@ async def process_text(query_data: UserQuery):
     input_text = query_data.user_query
 
     response = pinecone_call(input_text)
-    ingredients, instructions, titles = construct_answer(response)
-    return {"titles": titles, "ingredients": ingredients, "instructions": instructions}
+    final_answer = construct_answer(response)
+    return {"response": final_answer}
 
 
 # pinecone query function
@@ -65,8 +65,19 @@ def construct_answer(json_response):
         title = match['metadata']['title']
 
         # Add them to respective lists
-        ingredients_list.append(ingredients)
+        ingredients_string = ', '.join(ingredients)
+        ingredients_string = ingredients_string.replace('ADVERTISEMENT', '')
+
+        ingredients_list.append(ingredients_string)
         instructions_list.append(instructions)
         titles_list.append(title)
 
-    return ingredients_list, instructions_list, titles_list
+    final_answer = f'''With the ingredients you have you can prepare the following four dishes,
+    dish no : {1} is {titles_list[0]}, and for that you will need - {ingredients_list[0]}. Now {instructions_list[0]}.
+    dish no : {2} is {titles_list[1]}, and for that you will need - {ingredients_list[1]}. Now {instructions_list[1]}.
+    dish no : {3} is {titles_list[2]}, and for that you will need - {ingredients_list[2]}. Now {instructions_list[2]}.
+    dish no : {4} is {titles_list[3]}, and for that you will need - {ingredients_list[3]}. Now {instructions_list[3]}.
+    Enjoy your day.
+    '''
+
+    return final_answer
